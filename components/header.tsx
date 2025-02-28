@@ -36,20 +36,16 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-16 items-center">
-        <div className="flex items-center gap-2 mr-4">
+      <div className="container flex items-center h-16">
+        <div className="flex items-center mr-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative h-10 w-10">
-              <Image src="/logo.svg" alt="Basketball Stats Hub Logo" fill className="object-contain" priority />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-primary">BASKETBALL</span>
-              <span className="text-sm font-medium text-muted-foreground">STATS HUB</span>
+            <div className="relative w-40 h-20 mt-3">
+              <Image src="/place-holder.png" alt="Basketball Stats Hub Logo" fill className="object-contain" priority />
             </div>
           </Link>
         </div>
 
-        <nav className="hidden md:flex items-center space-x-4 lg:space-x-6 mx-6">
+        <nav className="items-center hidden mx-6 space-x-4 md:flex lg:space-x-6">
           {navItems.map((item) => (
             <Link key={item.name} href={item.href} className="text-sm font-medium transition-colors hover:text-primary">
               {item.name}
@@ -57,7 +53,7 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="flex-1 flex items-center justify-end">
+        <div className="flex items-center justify-end flex-1">
           <form onSubmit={handleSearch} className="relative w-full max-w-sm mr-4">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -87,12 +83,12 @@ export default function Header() {
       </div>
 
       <div className="container overflow-auto">
-        <nav className="flex items-center space-x-4 py-2">
+        <nav className="flex items-center py-2 space-x-4">
           {navItems.map((item) => (
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm font-medium md:hidden transition-colors hover:text-primary whitespace-nowrap"
+              className="text-sm font-medium transition-colors md:hidden hover:text-primary whitespace-nowrap"
             >
               {item.name}
             </Link>
