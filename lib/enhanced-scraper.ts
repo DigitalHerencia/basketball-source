@@ -1,7 +1,12 @@
+import { DayPicker } from 'react-day-picker';
 import { load } from "cheerio"
 import { setTimeout } from "timers/promises"
-import { prisma } from "@/lib/db"
-import type { ScrapeLog } from "@prisma/client"
+import dbConnect from "@/lib/db"
+import ScrapeLog from "@/models/ScrapeLog"
+import Player from "@/models/Player"
+import Team from "@/models/Team"
+import Season from "@/models/Season"
+import Game from "@/models/Game"
 
 // Rate limiting configuration
 const RATE_LIMIT = {
@@ -10,12 +15,6 @@ const RATE_LIMIT = {
 }
 
 // Cache configuration
-const CACHE_TTL = {
-  player: 24 * 60 * 60 * 1000, // 24 hours
-  team: 12 * 60 * 60 * 1000, // 12 hours
-  game: 6 * 60 * 60 * 1000, // 6 hours
-  standings: 1 * 60 * 60 * 1000, // 1 hour
-}
 
 // User agents to rotate
 const USER_AGENTS = [
@@ -112,40 +111,36 @@ async function logScrape(
   status: string,
   message?: string,
   itemsProcessed = 0,
-): Promise<ScrapeLog> {
+): Promise<any> {
+  await dbConnect()
   const startTime = new Date()
 
-  const log = await prisma.scrapeLog.create({
-    data: {
-      source,
-      type,
-      status,
-      message,
-      itemsProcessed,
-      startTime,
-      endTime: status !== "in_progress" ? new Date() : undefined,
-    },
+  const log = await ScrapeLog.create({
+    source,
+    type,
+    status,
+    message,
+    itemsProcessed,
+    startTime,
+    endTime: status !== "in_progress" ? new Date() : undefined,
   })
 
   return log
 }
 
 // Update scrape log when complete
-async function updateScrapeLog(
-  id: string,
-  status: string,
-  message?: string,
-  itemsProcessed?: number,
-): Promise<ScrapeLog> {
-  return prisma.scrapeLog.update({
-    where: { id },
-    data: {
+async function updateScrapeLog(id: string, status: string, message?: string, itemsProcessed?: number): Promise<any> {
+  await dbConnect()
+  return ScrapeLog.findByIdAndUpdate(
+    id,
+    {
       status,
       message,
       itemsProcessed: itemsProcessed !== undefined ? itemsProcessed : undefined,
       endTime: new Date(),
     },
-  })
+    { new: true },
+  )
 }
 
 // Scrape player data
@@ -366,18 +361,21 @@ export function scheduleDataUpdates() {
         const standings = await scrapeNBAStandings()
 
         // Process and save standings to database
+        await dbConnect()
         for (const conf of ["east", "west"]) {
           for (const team of standings[conf]) {
-            await prisma.team.upsert({
-              where: { abbreviation: team.team },
-              update: {},
-              create: {
-                name: team.team,
-                abbreviation: team.team,
-                city: team.team.split(" ")[0],
-                conference: conf === "east" ? "Eastern" : "Western",
+            await Team.findOneAndUpdate(
+              { abbreviation: team.team },
+              {
+                $set: {
+                  name: team.team,
+                  abbreviation: team.team,
+                  city: team.team.split(" ")[0],
+                  conference: conf === "east" ? "Eastern" : "Western",
+                },
               },
-            })
+              { upsert: true, new: true },
+            )
           }
         }
       } catch (error) {
@@ -387,119 +385,99 @@ export function scheduleDataUpdates() {
     60 * 60 * 1000,
   ) // 1 hour
 
+  let activePlayers: any;
   // Update player stats daily
   setInterval(
     async () => {
       try {
         console.log("Updating player statistics...")
+        
         // Get list of active players from database
-        const activePlayers = await prisma.player.findMany({
-          where: { active: true },
-          select: { id: true },
-        })
-
+        await dbConnect()
+        const activePlayers = await Player.find({ active: true }, { _id: 1 })
+        
         // Update each player's stats
         for (const player of activePlayers) {
-          try {
-            const playerData = await scrapePlayerData(player.id)
-
-            // Process and save player stats to database
-            for (const [season, stats] of Object.entries(playerData.stats)) {
-              await prisma.playerStats.upsert({
-                where: {
-                  playerId_seasonId: {
-                    playerId: player.id,
-                    seasonId: season,
-                  },
-                },
-                update: {
-                  gamesPlayed: stats.gp,
-                  points: stats.pts,
-                  rebounds: stats.reb,
-                  assists: stats.ast,
-                },
-                create: {
-                  playerId: player.id,
-                  seasonId: season,
-                  gamesPlayed: stats.gp,
-                  points: stats.pts,
-                  rebounds: stats.reb,
-                  assists: stats.ast,
-                },
-              })
-            }
-
-            // Rate limiting - wait between player requests
-            await setTimeout(RATE_LIMIT.minDelayBetweenRequests)
-          } catch (error) {
-            console.error(`Error updating stats for player ${player.id}:`, error)
-          }
+          for (const [season, stats] of Object.entries(player.stats)) {
+          const statsObject = stats as { gp: number; pts: number; reb: number; ast: number };
+          await Player.findOneAndUpdate(
+            { _id: player._id, "stats.season": season },
+            {
+              $set: {
+                "stats.$[elem].gamesPlayed": statsObject.gp,
+                "stats.$[elem].points": statsObject.pts,
+                "stats.$[elem].rebounds": statsObject.reb,
+                "stats.$[elem].assists": statsObject.ast,
+              },
+            },
+            {
+              arrayFilters: [{ elem: { season } }],
+              upsert: true,
+              new: true,
+            },
+          )
         }
-      } catch (error) {
-        console.error("Error updating player statistics:", error)
-      }
-    },
-    24 * 60 * 60 * 1000,
-  ) // 24 hours
+        }
+     } catch (error) {
+       activePlayers.forEach((player: { _id: any; }) => {
+         console.error(`Error updating stats for player ${player._id}:`, error)
+       })
+     }
+      },
+      24 * 60 * 60 * 1000,
+    ) 
+  
+    
+    // Update game results daily
+    setInterval(
+      async () => {
+        try {
+          console.log("Updating game results...")
+          const yesterday = new Date()
+          yesterday.setDate(yesterday.getDate() - 1)
+          
+          const formattedDate = yesterday.toISOString().split("T")[0].replace(/-/g, "")
+          
+          // Fetch games from yesterday
+          const url = `https://www.basketball-reference.com/boxscores/?month=${yesterday.getMonth() + 1}&day=${yesterday.getDate()}&year=${yesterday.getFullYear()}`
+          
+          const html = await enhancedFetch(url)
+          const $ = load(html)
 
-  // Update game results daily
-  setInterval(
-    async () => {
-      try {
-        console.log("Updating game results...")
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-
-        const formattedDate = yesterday.toISOString().split("T")[0].replace(/-/g, "")
-
-        // Fetch games from yesterday
-        const url = `https://www.basketball-reference.com/boxscores/?month=${yesterday.getMonth() + 1}&day=${yesterday.getDate()}&year=${yesterday.getFullYear()}`
-
-        const html = await enhancedFetch(url)
-        const $ = load(html)
-
-        const gameIds: string[] = []
+          const gameIds: string[] = []
         $("div.game_summary").each((_, game) => {
           const link = $(game).find("p.links a").first().attr("href")
           if (link) {
             const gameId = link.split("/").pop()?.replace(".html", "")
             if (gameId) gameIds.push(gameId)
           }
-        })
+      })
 
         // Process each game
+        await dbConnect()
         for (const gameId of gameIds) {
           try {
             const gameData = await scrapeGameData(gameId)
 
             // Save game data to database
             // Find teams
-            const homeTeam = await prisma.team.findFirst({
-              where: { name: { contains: gameData.homeTeam } },
-            })
-
-            const awayTeam = await prisma.team.findFirst({
-              where: { name: { contains: gameData.awayTeam } },
-            })
+            const homeTeam = await Team.findOne({ name: { $regex: gameData.homeTeam, $options: "i" } })
+            const awayTeam = await Team.findOne({ name: { $regex: gameData.awayTeam, $options: "i" } })
 
             if (homeTeam && awayTeam) {
               // Find or create season
-              const season = await prisma.season.findFirst({
-                where: { year: yesterday.getFullYear().toString() },
-              })
+              const season = await Season.findOne({ year: yesterday.getFullYear().toString() })
 
               if (season) {
                 // Create game record
-                await prisma.game.create({
-                  data: {
-                    date: yesterday,
-                    homeTeamId: homeTeam.id,
-                    awayTeamId: awayTeam.id,
-                    homeScore: gameData.homeScore,
-                    awayScore: gameData.awayScore,
-                    seasonId: season.id,
-                    status: "Final",
-                  },
+                await Game.create({
+                  date: yesterday,
+                  homeTeam: homeTeam._id,
+                  awayTeam: awayTeam._id,
+                  homeScore: gameData.homeScore,
+                  awayScore: gameData.awayScore,
+                  season: season._id,
+                  status: "Final",
                 })
               }
             }
@@ -515,6 +493,5 @@ export function scheduleDataUpdates() {
       }
     },
     24 * 60 * 60 * 1000,
-  ) // 24 hours
+  )
 }
-

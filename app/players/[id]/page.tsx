@@ -82,7 +82,7 @@ export default function PlayerPage({ params }: { params: { id: string } }) {
           <Card>
             <CardHeader className="flex flex-row items-center gap-4">
               <Avatar className="h-20 w-20">
-                <img src={`/placeholder.svg?height=80&width=80`} alt={playerData.name} />
+                <img src={`/place-holder-logo.png?height=80&width=80`} alt={playerData.name} />
               </Avatar>
               <div>
                 <CardTitle className="text-2xl">{playerData.name}</CardTitle>
@@ -239,7 +239,7 @@ export default function PlayerPage({ params }: { params: { id: string } }) {
                     className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50"
                   >
                     <Avatar className="h-8 w-8">
-                      <img src={`/placeholder.svg?height=32&width=32`} alt={`Similar Player ${i + 1}`} />
+                      <img src={`/place-holder-logo.png?height=32&width=32`} alt={`Similar Player ${i + 1}`} />
                     </Avatar>
                     <span>Similar Player {i + 1}</span>
                   </Link>
