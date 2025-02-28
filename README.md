@@ -1,27 +1,36 @@
-# Basketball Stats Hub
+## Project Overview
 
-Basketball Stats Hub is a comprehensive basketball statistics database created by Silas Roman, a 16-year-old basketball enthusiast from Anthony, New Mexico. This platform provides detailed statistics, scores, and historical data for the NBA, ABA, WNBA, and top European basketball competitions.
+I've created a Basketball-Reference.com clone called "Basketball Stats Hub" personalized for Silas Roman, a 16-year-old basketball fan from Anthony, NM who attends Gadsden High School and plays trombone in the band. The site features Gadsden High School's maroon color scheme and black panther mascot.
 
-## Tech Stack
+### Key Features
 
-- **Framework:** Next.js 15
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **UI Components:** shadcn/ui
-- **Database:** MongoDB
-- **ODM:** Mongoose
-- **Authentication:** Clerk
-- **Deployment:** Vercel
+1. **Modern Tech Stack**
 
-## Getting Started
+1. Next.js 15 with React 19
+2. shadcn/ui components with Tailwind CSS
+3. Responsive design with dark mode support
 
-### Prerequisites
 
-- Node.js 18.18.0 or later
-- npm or yarn
-- MongoDB database
 
-### Installation
+2. **Basketball Data**
 
-1. Clone the repository:
+1. Automated data scraping functionality
+2. Comprehensive statistics for NBA, WNBA, and other leagues
+3. Player profiles, team pages, and standings
+
+
+
+3. **Interactive Elements**
+
+1. Immaculate Grid basketball trivia game
+2. Search functionality
+3. Responsive tables and statistics displays
+
+
+
+4. **Personalized Branding**
+
+1. Custom maroon color scheme (Gadsden High School colors)
+2. Black Panther mascot references
+3. Personal about page for Silas Roman
 
