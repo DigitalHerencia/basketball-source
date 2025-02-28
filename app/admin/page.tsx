@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -12,7 +12,7 @@ import { RefreshCcw, AlertTriangle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 export default function AdminPage() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn, user } = useUser()
   const [activeTab, setActiveTab] = useState("dashboard")
   const [scrapeLogs, setScrapeLogs] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -21,10 +21,10 @@ export default function AdminPage() {
 
   // Redirect if not authenticated or not an admin
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.role !== "admin") {
+    if (isLoaded && (!isSignedIn || user?.publicMetadata.role !== "admin")) {
       redirect("/")
     }
-  }, [session, status])
+  }, [isLoaded, isSignedIn, user])
 
   // Fetch scrape logs
   const fetchScrapeLogs = async () => {
@@ -77,18 +77,13 @@ export default function AdminPage() {
 
   // Load scrape logs on initial load
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.role === "admin") {
+    if (isLoaded && isSignedIn && user?.publicMetadata.role === "admin") {
       fetchScrapeLogs()
     }
-  }, [status, session]) // Removed fetchScrapeLogs from dependencies
+  }, [isLoaded, isSignedIn, user]) // Removed fetchScrapeLogs from dependencies
 
-  if (status === "loading") {
+  if (!isLoaded || !isSignedIn) {
     return <div className="container py-10">Loading...</div>
-  }
-
-  if (status === "unauthenticated") {
-    redirect("/auth/signin")
-    return null
   }
 
   return (

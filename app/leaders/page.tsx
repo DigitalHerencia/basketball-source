@@ -104,7 +104,7 @@ export default function LeadersPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <img src={`/placeholder.svg?height=32&width=32`} alt={player.name} />
+                            <img src={`/place-holder-logo.png?height=32&width=32`} alt={player.name} />
                           </Avatar>
                           <Link href={`/players/${player.id}`} className="hover:text-primary">
                             {player.name}
@@ -150,7 +150,7 @@ export default function LeadersPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <img src={`/placeholder.svg?height=32&width=32`} alt={player.name} />
+                            <img src={`/place-holder-logo.png?height=32&width=32`} alt={player.name} />
                           </Avatar>
                           <Link href={`/players/${player.id}`} className="hover:text-primary">
                             {player.name}
@@ -196,7 +196,7 @@ export default function LeadersPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <img src={`/placeholder.svg?height=32&width=32`} alt={player.name} />
+                            <img src={`/place-holder-logo.png?height=32&width=32`} alt={player.name} />
                           </Avatar>
                           <Link href={`/players/${player.id}`} className="hover:text-primary">
                             {player.name}
@@ -242,7 +242,7 @@ export default function LeadersPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <img src={`/placeholder.svg?height=32&width=32`} alt={player.name} />
+                            <img src={`/place-holder-logo.png?height=32&width=32`} alt={player.name} />
                           </Avatar>
                           <Link href={`/players/${player.id}`} className="hover:text-primary">
                             {player.name}
@@ -288,7 +288,7 @@ export default function LeadersPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <img src={`/placeholder.svg?height=32&width=32`} alt={player.name} />
+                            <img src={`/place-holder-logo.png?height=32&width=32`} alt={player.name} />
                           </Avatar>
                           <Link href={`/players/${player.id}`} className="hover:text-primary">
                             {player.name}

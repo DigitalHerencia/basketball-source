@@ -40,7 +40,7 @@ export default function AboutPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="aspect-square relative rounded-md overflow-hidden">
-                <Image src="/placeholder.svg?height=300&width=300" alt="Silas Roman" fill className="object-cover" />
+                <Image src="/place-holder-logo.png?height=300&width=300" alt="Silas Roman" fill className="object-cover" />
               </div>
               <div>
                 <h3 className="font-semibold">Silas Roman</h3>

@@ -2,6 +2,7 @@
 
 import type React from "react"
 
+import { UserButton, SignInButton, useUser } from "@clerk/nextjs"
 import Link from "next/link"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -24,6 +25,7 @@ const navItems = [
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
+  const { isSignedIn, user } = useUser()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +73,15 @@ export default function Header() {
           </Button>
           <div className="ml-4">
             <ModeToggle />
+          </div>
+          <div className="ml-4">
+            {isSignedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <SignInButton mode="modal">
+                <Button variant="outline">Sign In</Button>
+              </SignInButton>
+            )}
           </div>
         </div>
       </div>

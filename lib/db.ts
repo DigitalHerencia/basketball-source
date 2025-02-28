@@ -1,14 +1,28 @@
-import { PrismaClient } from "@prisma/client"
+import mongoose from "mongoose";
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient }
+let isConnected = false; // Variable to track the connection status
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
-  })
+async function dbConnect() {
+  // Set strict query mode for Mongoose to prevent unknown field queries.
+  mongoose.set("strictQuery", true);
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
+  if (!process.env.MONGODB_URL) return console.log("Missing MongoDB URL");
 
-export default prisma
+  // If the connection is already established, return without creating a new connection.
+  if (isConnected) {
+    console.log("MongoDB connection already established");
+    return;
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGODB_URL);
+
+    isConnected = true; // Set the connection status to true
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export default dbConnect
 
